@@ -6,7 +6,10 @@ Pocket Tarot Bot
 import sqlite3
 import os
 
-DB_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tarot_bot.db")
+# Use persistent volume path on Railway, fallback to local for development
+DATA_DIR = "/app/data" if os.path.exists("/app") else os.path.dirname(os.path.abspath(__file__))
+os.makedirs(DATA_DIR, exist_ok=True)
+DB_FILE = os.path.join(DATA_DIR, "tarot_bot.db")
 print(f"[BOOT] Creating database at: {DB_FILE}")
 
 conn = sqlite3.connect(DB_FILE)
