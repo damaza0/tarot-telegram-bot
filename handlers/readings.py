@@ -305,73 +305,36 @@ async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
 
 async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
-    """Celtic Cross (10 cards)"""
+    """Celtic Cross (10 cards) - all in one message"""
     user_id = update.effective_user.id
     cards = draw_cards(10)
 
     # Position: (name, description, tense)
     positions = [
-        ("Present", "the central energy of the situation", "present"),
-        ("Challenge", "energy affecting the situation, for better or worse", "present"),
-        ("Foundation", "the unconscious root beneath it all", "past"),
-        ("Past", "energy that shaped this moment", "past"),
-        ("Crown", "the best possible outcome or aspiration", "future"),
-        ("Future", "what is approaching in the near term", "future"),
-        ("Self", "how you see yourself in this", "present"),
-        ("Environment", "how others see you or external factors", "present"),
-        ("Hopes & Fears", "your deepest hopes or hidden fears", "present"),
-        ("Outcome", "where things are likely heading", "future")
+        ("Present", "central energy", "present"),
+        ("Challenge", "what crosses you", "present"),
+        ("Foundation", "unconscious root", "past"),
+        ("Past", "what shaped this", "past"),
+        ("Crown", "best outcome", "future"),
+        ("Future", "near term", "future"),
+        ("Self", "how you see it", "present"),
+        ("Environment", "external factors", "present"),
+        ("Hopes & Fears", "inner tension", "present"),
+        ("Outcome", "where it's heading", "future")
     ]
 
-    intro = "🌙 *Celtic Cross Reading*\n\n"
-    intro += "_A comprehensive spread examining a situation from all angles: its roots, challenges, influences, and potential outcome._\n\n"
+    # Build the full reading
+    reading_text = "🌙 *Celtic Cross Reading*\n\n"
     if intention:
-        intro += f"_Your intention: {intention}_\n\n"
-    intro += "_Drawing 10 cards..._"
-
-    if update.callback_query:
-        await update.callback_query.edit_message_text(intro, parse_mode='Markdown')
-        track_msg(context, update.callback_query.message.message_id)
-    else:
-        intro_msg = await update.effective_message.reply_text(intro, parse_mode='Markdown')
-        track_msg(context, intro_msg.message_id)
-
-    # Check if user cancelled (hit /start)
-    if context.user_data.get('resetting'):
-        return
+        reading_text += f"_Focus: {intention}_\n\n"
 
     cards_data = []
-
-    # First 5 cards
-    part1 = ""
-    for i in range(5):
+    for i, (pos_name, desc, tense) in enumerate(positions):
         card_data = cards[i]
-        pos_name, desc, tense = positions[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        part1 += f"{format_card(card_data, pos_name, desc, tense)}"
-        if i < 4:
-            part1 += "\n\n---\n\n"
-
-    # Check if user cancelled
-    if context.user_data.get('resetting'):
-        return
-
-    part1_msg = await update.effective_message.reply_text(part1, parse_mode='Markdown')
-    track_msg(context, part1_msg.message_id)
-
-    # Check if user cancelled
-    if context.user_data.get('resetting'):
-        return
-
-    # Last 5 cards
-    part2 = ""
-    for i in range(5, 10):
-        card_data = cards[i]
-        pos_name, desc, tense = positions[i]
-        cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        part2 += f"{format_card(card_data, pos_name, desc, tense)}"
+        reading_text += f"{format_card(card_data, pos_name, desc, tense)}"
         if i < 9:
-            part2 += "\n\n---\n\n"
+            reading_text += "\n\n---\n\n"
 
     db.record_reading(
         user_id=user_id, spread_type="celtic",
@@ -401,12 +364,12 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🏠 Menu", callback_data="menu_main")]
     ])
 
-    # Final check before sending last message
-    if context.user_data.get('resetting'):
-        return
-
-    part2_msg = await update.effective_message.reply_text(part2, parse_mode='Markdown', reply_markup=keyboard)
-    track_msg(context, part2_msg.message_id)
+    if update.callback_query:
+        await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        track_msg(context, update.callback_query.message.message_id)
+    else:
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        track_msg(context, msg.message_id)
 
 
 async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
