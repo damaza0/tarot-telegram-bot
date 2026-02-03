@@ -9,10 +9,9 @@ from typing import Optional, Dict, Any, List, Tuple
 
 import config
 
-# Use persistent volume path on Railway, fallback to local for development
-DATA_DIR = "/app/data" if os.path.exists("/app") else os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.makedirs(DATA_DIR, exist_ok=True)
-DB_PATH = os.path.join(DATA_DIR, "tarot_bot.db")
+# Database in project root
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_PATH = os.path.join(PROJECT_ROOT, "tarot_bot.db")
 print(f"[DB] Using database: {DB_PATH}")
 
 
