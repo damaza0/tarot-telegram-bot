@@ -2,9 +2,13 @@
 Pocket Tarot Bot
 """
 
+# Ensure project root is in Python path
+import sys
+import os
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
 # CREATE DATABASE FIRST - before any other imports
 import sqlite3
-import os
 
 # Use persistent volume path on Railway, fallback to local for development
 DATA_DIR = "/app/data" if os.path.exists("/app") else os.path.dirname(os.path.abspath(__file__))
