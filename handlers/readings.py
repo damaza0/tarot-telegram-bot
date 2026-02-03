@@ -583,11 +583,9 @@ async def show_reading_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Clear intention state
     context.user_data.pop('intention_prompt_msg_id', None)
     context.user_data.pop('awaiting_intention', None)
+
     user = db.get_user(user_id)
     gems = user['tokens'] if user else 0
-
-    # Clear any pending intention state
-    context.user_data.pop('awaiting_intention', None)
 
     # Check free daily reading status
     daily_available, daily_status = await show_free_daily_status(user_id)

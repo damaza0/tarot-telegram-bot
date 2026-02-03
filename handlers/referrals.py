@@ -9,6 +9,15 @@ from utils.database import db
 import config
 
 
+def track_msg(context, msg_id):
+    """Track a message for later deletion (respects resetting flag)"""
+    if context.user_data.get('resetting'):
+        return
+    if 'bot_messages' not in context.user_data:
+        context.user_data['bot_messages'] = []
+    context.user_data['bot_messages'].append(msg_id)
+
+
 async def delete_after_delay(bot, chat_id: int, message_id: int, delay: int):
     """Delete a message after a delay"""
     await asyncio.sleep(delay)
@@ -50,14 +59,10 @@ Your link:
 
     if update.callback_query:
         await update.callback_query.edit_message_text(referral_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(referral_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def process_referral_start(user_id: int, username: str, first_name: str,

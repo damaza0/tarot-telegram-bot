@@ -9,7 +9,9 @@ import config
 
 
 def track_msg(context, msg_id):
-    """Track a message for later deletion"""
+    """Track a message for later deletion (respects resetting flag)"""
+    if context.user_data.get('resetting'):
+        return
     if 'bot_messages' not in context.user_data:
         context.user_data['bot_messages'] = []
     context.user_data['bot_messages'].append(msg_id)
