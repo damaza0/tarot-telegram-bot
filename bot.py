@@ -279,6 +279,52 @@ Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READIN
     await update.message.reply_text(help_text, parse_mode='Markdown')
 
 
+async def admin_command(update: Update, context):
+    """Admin command to give gems: /admin USER_ID AMOUNT"""
+    user_id = update.effective_user.id
+
+    # Check if user is admin
+    if user_id != config.ADMIN_ID:
+        return  # Silently ignore non-admins
+
+    args = context.args
+    if len(args) < 2:
+        await update.message.reply_text(
+            "*Admin Commands:*\n\n"
+            "`/admin USER_ID AMOUNT` — Give gems\n"
+            "`/admin me AMOUNT` — Give yourself gems\n\n"
+            "Example: `/admin 123456789 500`",
+            parse_mode='Markdown'
+        )
+        return
+
+    # Parse user ID (allow "me" as shortcut)
+    target = args[0]
+    if target.lower() == "me":
+        target_id = user_id
+    else:
+        try:
+            target_id = int(target)
+        except ValueError:
+            await update.message.reply_text("❌ Invalid user ID")
+            return
+
+    # Parse amount
+    try:
+        amount = int(args[1])
+    except ValueError:
+        await update.message.reply_text("❌ Invalid amount")
+        return
+
+    # Add gems
+    new_balance = db.add_tokens(target_id, amount)
+    await update.message.reply_text(
+        f"✅ Gave *{amount}*💎 to user `{target_id}`\n"
+        f"New balance: *{new_balance}*💎",
+        parse_mode='Markdown'
+    )
+
+
 async def delete_extra_messages(update: Update, context):
     """Delete any extra messages from multi-part readings"""
     if 'extra_messages' in context.user_data:
@@ -379,6 +425,7 @@ def main():
     application.add_handler(CommandHandler("invite", referral_command))
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("admin", admin_command))
     application.add_handler(CallbackQueryHandler(handle_callback))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))

@@ -13,6 +13,10 @@ BOT_TOKEN = os.getenv("BOT_TOKEN", "YOUR_BOT_TOKEN_HERE")
 # Bot username (without @)
 BOT_USERNAME = os.getenv("BOT_USERNAME", "The_Arcana_Tarot_Bot")
 
+# Admin user ID (can give gems to any user)
+# Set as environment variable ADMIN_ID on Railway
+ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+
 # Database file path
 DATABASE_PATH = "tarot_bot.db"
 
