@@ -232,6 +232,9 @@ Hey {update.effective_user.first_name}!
 async def start_command(update: Update, context):
     """Handle /start"""
     try:
+        user = update.effective_user
+        logger.info(f"[START] User {user.id} ({user.first_name}) called /start")
+
         # Signal that we're resetting - stops any ongoing reading from sending more messages
         context.user_data['resetting'] = True
 
@@ -241,17 +244,18 @@ async def start_command(update: Update, context):
         # Clear the list completely (keep resetting=True until menu is shown)
         context.user_data['bot_messages'] = []
 
-        user = update.effective_user
         args = context.args
 
         referral_code = None
         if args and args[0].startswith('ref_'):
             referral_code = args[0][4:]
+            logger.info(f"[START] User {user.id} has referral code: {referral_code}")
 
         user_data = await process_referral_start(
             user_id=user.id, username=user.username,
             first_name=user.first_name, referral_code=referral_code, context=context
         )
+        logger.info(f"[START] User {user.id} data loaded, is_new={user_data.get('is_new', False)}")
 
         if user_data.get('is_new'):
             welcome_gems = user_data.get('welcome_tokens', 5)
@@ -288,7 +292,9 @@ Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READIN
         context.user_data['resetting'] = False
 
     except Exception as e:
-        logger.error(f"Error in start_command: {e}")
+        import traceback
+        logger.error(f"Error in start_command for user {update.effective_user.id}: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         context.user_data['resetting'] = False
         # Always send something to the user
         try:

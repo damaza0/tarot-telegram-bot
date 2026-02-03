@@ -100,6 +100,7 @@ class DatabaseManager:
 
         # Generate unique referral code with retry logic
         max_attempts = 5
+        insert_success = False
         for attempt in range(max_attempts):
             user_ref_code = secrets.token_urlsafe(8)
             try:
@@ -107,16 +108,35 @@ class DatabaseManager:
                     total_tokens_earned, referral_code, referred_by)
                     VALUES (?, ?, ?, ?, ?, ?, ?)''',
                     (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                insert_success = True
                 break  # Success, exit loop
             except sqlite3.IntegrityError as e:
+                # Check if user was created by another request (race condition)
+                c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+                existing = c.fetchone()
+                if existing:
+                    # User exists now - return them (race condition resolved)
+                    conn.close()
+                    return dict(existing)
+
+                # Not a race condition - must be referral code collision
                 if attempt == max_attempts - 1:
-                    # Last attempt failed, use user_id as fallback
+                    # Last attempt failed, use user_id as fallback for referral code
                     user_ref_code = f"u{user_id}"
-                    c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
-                        total_tokens_earned, referral_code, referred_by)
-                        VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                        (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
-                # Otherwise, loop will retry with new code
+                    try:
+                        c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
+                            total_tokens_earned, referral_code, referred_by)
+                            VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                            (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                        insert_success = True
+                    except sqlite3.IntegrityError:
+                        # Final fallback - check if user exists now
+                        c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+                        existing = c.fetchone()
+                        if existing:
+                            conn.close()
+                            return dict(existing)
+                        raise  # Re-raise if still can't insert
 
         if referred_by:
             self._process_referral(c, referred_by, user_id)
