@@ -14,7 +14,9 @@ print(f"[BOOT] Python path: {sys.path[:3]}")
 # CREATE DATABASE FIRST - before any other imports
 import sqlite3
 
-DB_FILE = os.path.join(PROJECT_ROOT, "tarot_bot.db")
+# Use /app/storage for persistent volume (NOT /app/data - that would overwrite code!)
+STORAGE_DIR = "/app/storage" if os.path.exists("/app/storage") else PROJECT_ROOT
+DB_FILE = os.path.join(STORAGE_DIR, "tarot_bot.db")
 print(f"[BOOT] Creating database at: {DB_FILE}")
 
 conn = sqlite3.connect(DB_FILE)

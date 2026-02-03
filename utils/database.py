@@ -9,9 +9,10 @@ from typing import Optional, Dict, Any, List, Tuple
 
 import config
 
-# Database in project root
+# Use /app/storage for persistent volume (NOT /app/data - that would overwrite code!)
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(PROJECT_ROOT, "tarot_bot.db")
+STORAGE_DIR = "/app/storage" if os.path.exists("/app/storage") else PROJECT_ROOT
+DB_PATH = os.path.join(STORAGE_DIR, "tarot_bot.db")
 print(f"[DB] Using database: {DB_PATH}")
 
 
