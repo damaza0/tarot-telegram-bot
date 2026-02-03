@@ -146,6 +146,25 @@ async def delete_all_bot_messages(update: Update, context):
         context.user_data.pop('last_bot_msg_id', None)
 
 
+async def delete_extra_bot_messages(update: Update, context):
+    """Delete extra tracked messages but keep the current one (for button navigation)"""
+    chat_id = update.effective_chat.id
+    current_msg_id = update.callback_query.message.message_id if update.callback_query else None
+
+    # Delete all tracked messages EXCEPT the current one
+    if 'bot_messages' in context.user_data:
+        remaining = []
+        for msg_id in context.user_data['bot_messages']:
+            if msg_id == current_msg_id:
+                remaining.append(msg_id)
+            else:
+                try:
+                    await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
+                except:
+                    pass
+        context.user_data['bot_messages'] = remaining
+
+
 def track_message(context, msg_id):
     """Track a bot message for later deletion"""
     if 'bot_messages' not in context.user_data:
@@ -376,9 +395,11 @@ async def handle_callback(update: Update, context):
 
     if data == "menu_main":
         await query.answer()
+        await delete_extra_bot_messages(update, context)
         await show_main_menu(update, context)
     elif data == "menu_reading":
         await query.answer()
+        await delete_extra_bot_messages(update, context)
         await show_reading_menu(update, context)
     elif data.startswith("reading_"):
         await handle_reading_callback(update, context)
