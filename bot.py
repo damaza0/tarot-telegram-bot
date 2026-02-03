@@ -376,11 +376,9 @@ async def handle_callback(update: Update, context):
 
     if data == "menu_main":
         await query.answer()
-        await delete_all_bot_messages(update, context)
         await show_main_menu(update, context)
     elif data == "menu_reading":
         await query.answer()
-        await delete_all_bot_messages(update, context)
         await show_reading_menu(update, context)
     elif data.startswith("reading_"):
         await handle_reading_callback(update, context)
