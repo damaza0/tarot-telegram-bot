@@ -154,6 +154,22 @@ class DatabaseManager:
     def add_tokens(self, user_id: int, amount: int, reason: str = "purchase") -> int:
         conn = self._get_conn()
         c = conn.cursor()
+
+        # Check if user exists first
+        c.execute('SELECT tokens FROM users WHERE user_id = ?', (user_id,))
+        existing = c.fetchone()
+
+        if not existing:
+            # Create user with minimal data if they don't exist
+            import secrets
+            ref_code = secrets.token_urlsafe(8)
+            c.execute('''INSERT INTO users (user_id, tokens, total_tokens_earned, referral_code)
+                VALUES (?, ?, ?, ?)''', (user_id, amount, amount, ref_code))
+            conn.commit()
+            conn.close()
+            return amount
+
+        # User exists, update their tokens
         c.execute('''UPDATE users SET tokens = tokens + ?,
             total_tokens_earned = total_tokens_earned + ? WHERE user_id = ?''',
             (amount, amount, user_id))
