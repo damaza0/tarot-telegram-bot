@@ -382,8 +382,8 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     positions = [
         ("First Person", "energy representing one side of the connection", "present"),
         ("Second Person", "energy representing the other side", "present"),
-        ("The Bond", "what holds this connection together", "present"),
-        ("The Challenge", "tensions or obstacles between them", "present"),
+        ("The Bond", "the shared foundation of the relationship", "present"),
+        ("The Challenge", "the energy causing tension or obstacles", "present"),
         ("The Advice", "energy to be aware of", "future")
     ]
 
