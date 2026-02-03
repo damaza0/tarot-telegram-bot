@@ -114,13 +114,14 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
     description = f"Get {package['tokens']} gems for tarot readings"
     prices = [LabeledPrice(label=title, amount=package['stars'])]
 
+    # Delete the shop menu before sending invoice
     try:
-        # Delete the shop menu before sending invoice
-        try:
-            await query.message.delete()
-        except:
-            pass
+        await query.message.delete()
+    except:
+        pass
 
+    # Send the invoice
+    try:
         invoice_msg = await context.bot.send_invoice(
             chat_id=update.effective_chat.id,
             title=title,
@@ -130,33 +131,32 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             currency="XTR",
             prices=prices
         )
-        # Track invoice message for cleanup
         track_msg(context, invoice_msg.message_id)
+    except Exception as e:
+        print(f"Invoice error: {e}")
+        keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Back", callback_data="menu_tokens")]
+        ])
+        await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="❌ Could not create payment. Please try again.",
+            reply_markup=keyboard
+        )
+        return
 
-        # Send a cancel option below the invoice
+    # Send cancel button below invoice
+    try:
         cancel_keyboard = InlineKeyboardMarkup([
             [InlineKeyboardButton("❌ Cancel", callback_data="menu_tokens")]
         ])
         cancel_msg = await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="⠀",  # Invisible character (Braille blank)
+            text="·",
             reply_markup=cancel_keyboard
         )
         track_msg(context, cancel_msg.message_id)
-
-    except Exception as e:
-        print(f"Payment error: {e}")  # Log the actual error
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔙 Back to Shop", callback_data="menu_tokens")],
-            [InlineKeyboardButton("🏠 Menu", callback_data="menu_main")]
-        ])
-        msg = await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text=f"❌ *Could not create payment*\n\nError: {str(e)[:100]}",
-            parse_mode='Markdown',
-            reply_markup=keyboard
-        )
-        track_msg(context, msg.message_id)
+    except:
+        pass  # Cancel button is optional, don't fail if it doesn't work
 
 
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
