@@ -233,8 +233,14 @@ _A single card offers a focused message, one energy or theme to reflect on._
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
-        await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -287,8 +293,14 @@ async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
-        await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -381,7 +393,8 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🏠 Menu", callback_data="menu_main")]
     ])
 
-    await update.effective_message.reply_text(part2, parse_mode='Markdown', reply_markup=keyboard)
+    part2_msg = await update.effective_message.reply_text(part2, parse_mode='Markdown', reply_markup=keyboard)
+    context.user_data['bot_messages'].append(part2_msg.message_id)
 
 
 async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -439,8 +452,14 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
-        await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -504,8 +523,14 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
-        await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def show_intention_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE, reading_type: str):
@@ -884,8 +909,14 @@ _A single card to set the tone for the day, a theme to carry forward._
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
-        await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def show_free_daily_status(user_id: int) -> tuple:
