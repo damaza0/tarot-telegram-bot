@@ -336,7 +336,9 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         card_data = cards[i]
         pos_name, desc, tense = positions[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        part1 += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
+        part1 += f"{format_card(card_data, pos_name, desc, tense)}"
+        if i < 4:
+            part1 += "\n\n---\n\n"
 
     part1_msg = await update.effective_message.reply_text(part1, parse_mode='Markdown')
     context.user_data['bot_messages'].append(part1_msg.message_id)
@@ -347,7 +349,9 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         card_data = cards[i]
         pos_name, desc, tense = positions[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        part2 += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
+        part2 += f"{format_card(card_data, pos_name, desc, tense)}"
+        if i < 9:
+            part2 += "\n\n---\n\n"
 
     db.record_reading(
         user_id=user_id, spread_type="celtic",
@@ -406,7 +410,9 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     for i, (pos_name, desc, tense) in enumerate(positions):
         card_data = cards[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        reading_text += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
+        reading_text += f"{format_card(card_data, pos_name, desc, tense)}"
+        if i < len(positions) - 1:
+            reading_text += "\n\n---\n\n"
 
     db.record_reading(
         user_id=user_id, spread_type="relationship",
@@ -464,7 +470,9 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     for i, (pos_name, desc, tense) in enumerate(positions):
         card_data = cards[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        reading_text += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
+        reading_text += f"{format_card(card_data, pos_name, desc, tense)}"
+        if i < len(positions) - 1:
+            reading_text += "\n\n---\n\n"
 
     db.record_reading(
         user_id=user_id, spread_type="horseshoe",
