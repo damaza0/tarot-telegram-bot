@@ -50,10 +50,14 @@ Your link:
 
     if update.callback_query:
         await update.callback_query.edit_message_text(referral_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = update.callback_query.message.message_id
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(referral_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def process_referral_start(user_id: int, username: str, first_name: str,

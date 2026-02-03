@@ -8,6 +8,13 @@ from utils.database import db
 import config
 
 
+def track_msg(context, msg_id):
+    """Track a message for later deletion"""
+    if 'bot_messages' not in context.user_data:
+        context.user_data['bot_messages'] = []
+    context.user_data['bot_messages'].append(msg_id)
+
+
 async def show_token_shop(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Gem shop"""
     user_id = update.effective_user.id
@@ -40,10 +47,10 @@ _Payment via Telegram Stars_
 
     if update.callback_query:
         await update.callback_query.edit_message_text(shop_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = update.callback_query.message.message_id
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(shop_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        track_msg(context, msg.message_id)
 
 
 async def show_free_tokens_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -122,7 +129,7 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             prices=prices
         )
         # Track invoice message for cleanup
-        context.user_data['last_bot_msg_id'] = invoice_msg.message_id
+        track_msg(context, invoice_msg.message_id)
     except Exception as e:
         print(f"Payment error: {e}")  # Log the actual error
         keyboard = InlineKeyboardMarkup([
@@ -135,7 +142,7 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             parse_mode='Markdown',
             reply_markup=keyboard
         )
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        track_msg(context, msg.message_id)
 
 
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -156,15 +163,15 @@ async def successful_payment_callback(update: Update, context: ContextTypes.DEFA
     payment = update.message.successful_payment
     user_id = update.effective_user.id
 
-    # Delete old tracked message (invoice)
-    if 'last_bot_msg_id' in context.user_data:
-        try:
-            await context.bot.delete_message(
-                chat_id=update.effective_chat.id,
-                message_id=context.user_data['last_bot_msg_id']
-            )
-        except:
-            pass
+    # Delete all tracked messages (including invoice)
+    chat_id = update.effective_chat.id
+    if 'bot_messages' in context.user_data:
+        for msg_id in context.user_data['bot_messages']:
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
+            except:
+                pass
+        context.user_data['bot_messages'] = []
 
     parts = payment.invoice_payload.split("_")
     package_key = parts[1]
@@ -190,4 +197,4 @@ New balance: *{new_balance}*💎
     ])
 
     msg = await update.message.reply_text(success_text, parse_mode='Markdown', reply_markup=keyboard)
-    context.user_data['last_bot_msg_id'] = msg.message_id
+    track_msg(context, msg.message_id)

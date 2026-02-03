@@ -105,17 +105,42 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 
-async def delete_last_bot_message(update: Update, context):
-    """Delete the last tracked bot message to keep chat clean"""
+async def delete_all_bot_messages(update: Update, context):
+    """Delete ALL tracked bot messages to keep chat completely clean"""
+    chat_id = update.effective_chat.id
+
+    # Delete all tracked messages
+    if 'bot_messages' in context.user_data:
+        for msg_id in context.user_data['bot_messages']:
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
+            except:
+                pass  # Message may already be deleted or too old
+        context.user_data['bot_messages'] = []
+
+    # Also clean up extra_messages from readings
+    if 'extra_messages' in context.user_data:
+        for msg_id in context.user_data['extra_messages']:
+            try:
+                await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
+            except:
+                pass
+        context.user_data['extra_messages'] = []
+
+    # Clean up legacy tracking
     if 'last_bot_msg_id' in context.user_data:
         try:
-            await context.bot.delete_message(
-                chat_id=update.effective_chat.id,
-                message_id=context.user_data['last_bot_msg_id']
-            )
+            await context.bot.delete_message(chat_id=chat_id, message_id=context.user_data['last_bot_msg_id'])
         except:
-            pass  # Message may already be deleted or too old
+            pass
         context.user_data.pop('last_bot_msg_id', None)
+
+
+def track_message(context, msg_id):
+    """Track a bot message for later deletion"""
+    if 'bot_messages' not in context.user_data:
+        context.user_data['bot_messages'] = []
+    context.user_data['bot_messages'].append(msg_id)
 
 
 async def show_main_menu(update: Update, context, user_data: dict = None):
@@ -165,16 +190,16 @@ Hey {update.effective_user.first_name}!
 
     if update.callback_query:
         await update.callback_query.edit_message_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = update.callback_query.message.message_id
+        track_message(context, update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        track_message(context, msg.message_id)
 
 
 async def start_command(update: Update, context):
     """Handle /start"""
-    # Clean up old menu message
-    await delete_last_bot_message(update, context)
+    # Clean up ALL old bot messages
+    await delete_all_bot_messages(update, context)
 
     user = update.effective_user
     args = context.args
@@ -215,21 +240,21 @@ Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READIN
         ])
 
         msg = await update.message.reply_text(welcome_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        track_message(context, msg.message_id)
     else:
         await show_main_menu(update, context, user_data)
 
 
 async def reading_command(update: Update, context):
-    await delete_last_bot_message(update, context)
+    await delete_all_bot_messages(update, context)
     await show_reading_menu(update, context)
 
 async def tokens_command(update: Update, context):
-    await delete_last_bot_message(update, context)
+    await delete_all_bot_messages(update, context)
     await show_token_shop(update, context)
 
 async def referral_command(update: Update, context):
-    await delete_last_bot_message(update, context)
+    await delete_all_bot_messages(update, context)
     await show_referral_menu(update, context)
 
 async def stats_command(update: Update, context):
@@ -330,16 +355,6 @@ async def admin_command(update: Update, context):
     )
 
 
-async def delete_extra_messages(update: Update, context):
-    """Delete any extra messages from multi-part readings"""
-    if 'extra_messages' in context.user_data:
-        chat_id = update.effective_chat.id
-        for msg_id in context.user_data['extra_messages']:
-            try:
-                await context.bot.delete_message(chat_id=chat_id, message_id=msg_id)
-            except:
-                pass  # Message may already be deleted
-        context.user_data['extra_messages'] = []
 
 
 async def handle_callback(update: Update, context):
@@ -351,11 +366,11 @@ async def handle_callback(update: Update, context):
 
     if data == "menu_main":
         await query.answer()
-        await delete_extra_messages(update, context)
+        await delete_all_bot_messages(update, context)
         await show_main_menu(update, context)
     elif data == "menu_reading":
         await query.answer()
-        await delete_extra_messages(update, context)
+        await delete_all_bot_messages(update, context)
         await show_reading_menu(update, context)
     elif data.startswith("reading_"):
         await handle_reading_callback(update, context)

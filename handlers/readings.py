@@ -310,8 +310,9 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         ("Outcome", "the likely resolution if things continue", "future")
     ]
 
-    # Track extra messages to delete later
-    context.user_data['extra_messages'] = []
+    # Initialize message tracking if needed
+    if 'bot_messages' not in context.user_data:
+        context.user_data['bot_messages'] = []
 
     intro = "🌙 *Celtic Cross Reading*\n\n"
     intro += "_A comprehensive spread examining a situation from all angles: its roots, challenges, influences, and potential outcome._\n\n"
@@ -322,10 +323,10 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     if update.callback_query:
         await update.callback_query.edit_message_text(intro, parse_mode='Markdown')
         # Track the intro message so it can be deleted when navigating away
-        context.user_data['extra_messages'].append(update.callback_query.message.message_id)
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
         intro_msg = await update.effective_message.reply_text(intro, parse_mode='Markdown')
-        context.user_data['extra_messages'].append(intro_msg.message_id)
+        context.user_data['bot_messages'].append(intro_msg.message_id)
 
     cards_data = []
 
@@ -338,7 +339,7 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         part1 += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
 
     part1_msg = await update.effective_message.reply_text(part1, parse_mode='Markdown')
-    context.user_data['extra_messages'].append(part1_msg.message_id)
+    context.user_data['bot_messages'].append(part1_msg.message_id)
 
     # Last 5 cards
     part2 = ""
@@ -391,7 +392,7 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         ("Second Person", "energy representing the other side", "present"),
         ("The Bond", "what holds this relationship together", "present"),
         ("The Challenge", "tensions or obstacles between them", "present"),
-        ("The Advice", "guidance for navigating this connection", "future")
+        ("The Advice", "energy to be aware of", "future")
     ]
 
     intro = "💕 *Relationship Reading*\n\n"
@@ -448,7 +449,7 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         ("Hidden Influences", "forces at work beneath the surface", "present"),
         ("Obstacles", "what stands in the way", "present"),
         ("External Forces", "people or circumstances affecting things", "present"),
-        ("Advice", "a suggested approach moving forward", "future"),
+        ("Advice", "energy to be aware of", "future"),
         ("Outcome", "where things are likely heading", "future")
     ]
 
@@ -579,8 +580,7 @@ async def show_reading_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Reading selection menu"""
     user_id = update.effective_user.id
 
-    # Clear any tracked extra messages and intention state
-    context.user_data.pop('extra_messages', None)
+    # Clear intention state
     context.user_data.pop('intention_prompt_msg_id', None)
     context.user_data.pop('awaiting_intention', None)
     user = db.get_user(user_id)
@@ -625,10 +625,14 @@ async def show_reading_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.callback_query:
         await update.callback_query.edit_message_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = update.callback_query.message.message_id
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        context.user_data['last_bot_msg_id'] = msg.message_id
+        if 'bot_messages' not in context.user_data:
+            context.user_data['bot_messages'] = []
+        context.user_data['bot_messages'].append(msg.message_id)
 
 
 async def handle_reading_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
