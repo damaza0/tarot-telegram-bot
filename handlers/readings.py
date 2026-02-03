@@ -212,9 +212,6 @@ async def single_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE
 _A single card offers a focused message, one energy or theme to reflect on._
 
 {format_card(card_data)}
-
----
-_Take what resonates._
 """
 
     db.record_reading(
@@ -261,9 +258,7 @@ async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE,
     for i, (pos_name, desc, tense) in enumerate(positions):
         card_data = cards[i]
         cards_data.append({'name': card_data['card']['name'], 'reversed': card_data['reversed']})
-        reading_text += f"{format_card(card_data, pos_name, desc, tense)}\n\n---\n\n"
-
-    reading_text += "_Take what resonates._"
+        reading_text += f"{format_card(card_data, pos_name, desc, tense)}\n\n"
 
     db.record_reading(
         user_id=user_id, spread_type="three",
@@ -364,7 +359,6 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     outcome_card = outcome['card']
     outcome_keywords = get_brief_keywords(outcome, 2)
     outcome_rev = " (Reversed)" if outcome['reversed'] else ""
-    part2 += "_Take what resonates._"
 
     present = cards[0]['card']
     referral_link = db.get_referral_link(user_id, config.BOT_USERNAME)
@@ -419,8 +413,6 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         question=intention,
         tokens_spent=config.READING_COSTS['relationship'], is_free=False
     )
-
-    reading_text += "_Take what resonates._"
 
     bond_card = cards[2]['card']
     advice_card = cards[4]['card']
@@ -485,7 +477,6 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     outcome_keywords = get_brief_keywords(outcome, 2)
     outcome_rev = " (Reversed)" if outcome['reversed'] else ""
     present = cards[1]['card']
-    reading_text += "_Take what resonates._"
 
     referral_link = db.get_referral_link(user_id, config.BOT_USERNAME)
     share_text = (
@@ -850,10 +841,6 @@ _A single card to set the tone for the day, a theme to carry forward._
 
 *Today's Message:*
 {advice}
-
----
-
-_Carry this energy with you today._
 """
 
     # Mark as claimed - starts the cooldown
