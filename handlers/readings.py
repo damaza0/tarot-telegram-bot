@@ -12,6 +12,15 @@ from utils.database import db
 import config
 
 
+def track_msg(context, msg_id):
+    """Track a message for later deletion (respects resetting flag)"""
+    if context.user_data.get('resetting'):
+        return  # Don't track during reset
+    if 'bot_messages' not in context.user_data:
+        context.user_data['bot_messages'] = []
+    context.user_data['bot_messages'].append(msg_id)
+
+
 def draw_cards(count: int) -> list:
     """Draw random cards"""
     all_cards = get_all_cards()
@@ -233,14 +242,10 @@ _A single card offers a focused message, one energy or theme to reflect on._
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -293,14 +298,10 @@ async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -322,10 +323,6 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         ("Outcome", "where things are likely heading", "future")
     ]
 
-    # Initialize message tracking if needed
-    if 'bot_messages' not in context.user_data:
-        context.user_data['bot_messages'] = []
-
     intro = "🌙 *Celtic Cross Reading*\n\n"
     intro += "_A comprehensive spread examining a situation from all angles: its roots, challenges, influences, and potential outcome._\n\n"
     if intention:
@@ -334,11 +331,10 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
 
     if update.callback_query:
         await update.callback_query.edit_message_text(intro, parse_mode='Markdown')
-        # Track the intro message so it can be deleted when navigating away
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         intro_msg = await update.effective_message.reply_text(intro, parse_mode='Markdown')
-        context.user_data['bot_messages'].append(intro_msg.message_id)
+        track_msg(context, intro_msg.message_id)
 
     cards_data = []
 
@@ -353,7 +349,7 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
             part1 += "\n\n---\n\n"
 
     part1_msg = await update.effective_message.reply_text(part1, parse_mode='Markdown')
-    context.user_data['bot_messages'].append(part1_msg.message_id)
+    track_msg(context, part1_msg.message_id)
 
     # Last 5 cards
     part2 = ""
@@ -394,7 +390,7 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     ])
 
     part2_msg = await update.effective_message.reply_text(part2, parse_mode='Markdown', reply_markup=keyboard)
-    context.user_data['bot_messages'].append(part2_msg.message_id)
+    track_msg(context, part2_msg.message_id)
 
 
 async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -452,14 +448,10 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, intention: str = None):
@@ -523,14 +515,10 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def show_intention_prompt(update: Update, context: ContextTypes.DEFAULT_TYPE, reading_type: str):
@@ -658,14 +646,10 @@ async def show_reading_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if update.callback_query:
         await update.callback_query.edit_message_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.message.reply_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def handle_reading_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -909,14 +893,10 @@ _A single card to set the tone for the day, a theme to carry forward._
 
     if update.callback_query:
         await update.callback_query.edit_message_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(update.callback_query.message.message_id)
+        track_msg(context, update.callback_query.message.message_id)
     else:
         msg = await update.effective_message.reply_text(reading_text, parse_mode='Markdown', reply_markup=keyboard)
-        if 'bot_messages' not in context.user_data:
-            context.user_data['bot_messages'] = []
-        context.user_data['bot_messages'].append(msg.message_id)
+        track_msg(context, msg.message_id)
 
 
 async def show_free_daily_status(user_id: int) -> tuple:

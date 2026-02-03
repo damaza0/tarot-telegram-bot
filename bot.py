@@ -167,6 +167,9 @@ async def delete_extra_bot_messages(update: Update, context):
 
 def track_message(context, msg_id):
     """Track a bot message for later deletion"""
+    # Don't track if we're in the middle of resetting (user hit /start)
+    if context.user_data.get('resetting'):
+        return
     if 'bot_messages' not in context.user_data:
         context.user_data['bot_messages'] = []
     context.user_data['bot_messages'].append(msg_id)
@@ -227,8 +230,15 @@ Hey {update.effective_user.first_name}!
 
 async def start_command(update: Update, context):
     """Handle /start"""
+    # Signal that we're resetting - stops any ongoing reading message tracking
+    context.user_data['resetting'] = True
+
     # Clean up ALL old bot messages
     await delete_all_bot_messages(update, context)
+
+    # Clear the list completely and reset flag
+    context.user_data['bot_messages'] = []
+    context.user_data['resetting'] = False
 
     user = update.effective_user
     args = context.args
