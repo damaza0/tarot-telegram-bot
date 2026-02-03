@@ -311,7 +311,7 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     # Position: (name, description, tense)
     positions = [
         ("Present", "the central energy of the situation", "present"),
-        ("Challenge", "what crosses or complicates things", "present"),
+        ("Challenge", "energy affecting the situation, for better or worse", "present"),
         ("Foundation", "the unconscious root beneath it all", "past"),
         ("Past", "energy that shaped this moment", "past"),
         ("Crown", "the best possible outcome or aspiration", "future"),
