@@ -244,7 +244,7 @@ async def three_card_reading(update: Update, context: ContextTypes.DEFAULT_TYPE,
 
     # Position: (name, description, tense)
     positions = [
-        ("Past", "events and energies that shaped this situation", "past"),
+        ("Past", "energy that shaped this moment", "past"),
         ("Present", "where things stand right now", "present"),
         ("Future", "where this path may lead", "future")
     ]
@@ -301,13 +301,13 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         ("Present", "the central energy of the situation", "present"),
         ("Challenge", "what crosses or complicates things", "present"),
         ("Foundation", "the unconscious root beneath it all", "past"),
-        ("Past", "recent events influencing the present", "past"),
+        ("Past", "energy that shaped this moment", "past"),
         ("Crown", "the best possible outcome or aspiration", "future"),
         ("Future", "what is approaching in the near term", "future"),
         ("Self", "how you see yourself in this", "present"),
         ("Environment", "how others see you or external factors", "present"),
         ("Hopes & Fears", "your deepest hopes or hidden fears", "present"),
-        ("Outcome", "the likely resolution if things continue", "future")
+        ("Outcome", "where things are likely heading", "future")
     ]
 
     # Initialize message tracking if needed
@@ -394,7 +394,7 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     positions = [
         ("First Person", "energy representing one side of the connection", "present"),
         ("Second Person", "energy representing the other side", "present"),
-        ("The Bond", "what holds this relationship together", "present"),
+        ("The Bond", "what holds this connection together", "present"),
         ("The Challenge", "tensions or obstacles between them", "present"),
         ("The Advice", "energy to be aware of", "future")
     ]
@@ -450,7 +450,7 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
 
     # Position: (name, description, tense)
     positions = [
-        ("Past", "events that led to this moment", "past"),
+        ("Past", "energy that led to this moment", "past"),
         ("Present", "the energy of the current situation", "present"),
         ("Hidden Influences", "forces at work beneath the surface", "present"),
         ("Obstacles", "what stands in the way", "present"),
