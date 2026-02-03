@@ -132,6 +132,19 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         # Track invoice message for cleanup
         track_msg(context, invoice_msg.message_id)
+
+        # Send a cancel option below the invoice
+        cancel_keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("❌ Cancel", callback_data="menu_tokens")]
+        ])
+        cancel_msg = await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="_Tap above to pay, or cancel below_",
+            parse_mode='Markdown',
+            reply_markup=cancel_keyboard
+        )
+        track_msg(context, cancel_msg.message_id)
+
     except Exception as e:
         print(f"Payment error: {e}")  # Log the actual error
         keyboard = InlineKeyboardMarkup([

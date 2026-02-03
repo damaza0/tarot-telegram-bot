@@ -89,7 +89,6 @@ class DatabaseManager:
 
         # New user
         import secrets
-        user_ref_code = secrets.token_urlsafe(8)
         welcome = config.WELCOME_GEMS
 
         referred_by = None
@@ -99,10 +98,25 @@ class DatabaseManager:
             if ref and ref['user_id'] != user_id:
                 referred_by = ref['user_id']
 
-        c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
-            total_tokens_earned, referral_code, referred_by)
-            VALUES (?, ?, ?, ?, ?, ?, ?)''',
-            (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+        # Generate unique referral code with retry logic
+        max_attempts = 5
+        for attempt in range(max_attempts):
+            user_ref_code = secrets.token_urlsafe(8)
+            try:
+                c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
+                    total_tokens_earned, referral_code, referred_by)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                    (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                break  # Success, exit loop
+            except sqlite3.IntegrityError as e:
+                if attempt == max_attempts - 1:
+                    # Last attempt failed, use user_id as fallback
+                    user_ref_code = f"u{user_id}"
+                    c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
+                        total_tokens_earned, referral_code, referred_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                        (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                # Otherwise, loop will retry with new code
 
         if referred_by:
             self._process_referral(c, referred_by, user_id)

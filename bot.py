@@ -231,31 +231,32 @@ Hey {update.effective_user.first_name}!
 
 async def start_command(update: Update, context):
     """Handle /start"""
-    # Signal that we're resetting - stops any ongoing reading from sending more messages
-    context.user_data['resetting'] = True
+    try:
+        # Signal that we're resetting - stops any ongoing reading from sending more messages
+        context.user_data['resetting'] = True
 
-    # Clean up ALL old bot messages
-    await delete_all_bot_messages(update, context)
+        # Clean up ALL old bot messages
+        await delete_all_bot_messages(update, context)
 
-    # Clear the list completely (keep resetting=True until menu is shown)
-    context.user_data['bot_messages'] = []
+        # Clear the list completely (keep resetting=True until menu is shown)
+        context.user_data['bot_messages'] = []
 
-    user = update.effective_user
-    args = context.args
+        user = update.effective_user
+        args = context.args
 
-    referral_code = None
-    if args and args[0].startswith('ref_'):
-        referral_code = args[0][4:]
+        referral_code = None
+        if args and args[0].startswith('ref_'):
+            referral_code = args[0][4:]
 
-    user_data = await process_referral_start(
-        user_id=user.id, username=user.username,
-        first_name=user.first_name, referral_code=referral_code, context=context
-    )
+        user_data = await process_referral_start(
+            user_id=user.id, username=user.username,
+            first_name=user.first_name, referral_code=referral_code, context=context
+        )
 
-    if user_data.get('is_new'):
-        welcome_gems = user_data.get('welcome_tokens', 5)
+        if user_data.get('is_new'):
+            welcome_gems = user_data.get('welcome_tokens', 5)
 
-        welcome_text = f"""🔮 *Welcome to Pocket Tarot!* 🔮
+            welcome_text = f"""🔮 *Welcome to Pocket Tarot!* 🔮
 
 Hey {user.first_name}! You got *{welcome_gems} free gems* 💎
 
@@ -271,20 +272,32 @@ Single {config.READING_COSTS['single']}💎 · Three Card {config.READING_COSTS[
 Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READING_COSTS['celtic']}💎
 """
 
-        keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("☀️ Get Your FREE Daily Reading", callback_data="reading_daily_free")],
-            [InlineKeyboardButton("🎁 Claim Free Gem", callback_data="claim_free_gem")],
-            [InlineKeyboardButton("🔮 More Readings", callback_data="menu_reading")],
-            [InlineKeyboardButton("👥 Invite Friends +5💎", callback_data="menu_referral")],
-        ])
+            keyboard = InlineKeyboardMarkup([
+                [InlineKeyboardButton("☀️ Get Your FREE Daily Reading", callback_data="reading_daily_free")],
+                [InlineKeyboardButton("🎁 Claim Free Gem", callback_data="claim_free_gem")],
+                [InlineKeyboardButton("🔮 More Readings", callback_data="menu_reading")],
+                [InlineKeyboardButton("👥 Invite Friends +5💎", callback_data="menu_referral")],
+            ])
 
-        msg = await update.message.reply_text(welcome_text, parse_mode='Markdown', reply_markup=keyboard)
-        track_message(context, msg.message_id, force=True)
-    else:
-        await show_main_menu(update, context, user_data, force_track=True)
+            msg = await update.message.reply_text(welcome_text, parse_mode='Markdown', reply_markup=keyboard)
+            track_message(context, msg.message_id, force=True)
+        else:
+            await show_main_menu(update, context, user_data, force_track=True)
 
-    # Now safe to allow message tracking again
-    context.user_data['resetting'] = False
+        # Now safe to allow message tracking again
+        context.user_data['resetting'] = False
+
+    except Exception as e:
+        logger.error(f"Error in start_command: {e}")
+        context.user_data['resetting'] = False
+        # Always send something to the user
+        try:
+            await update.message.reply_text(
+                "🔮 *Welcome to Pocket Tarot!*\n\nSomething went wrong. Please try /start again.",
+                parse_mode='Markdown'
+            )
+        except:
+            pass
 
 
 async def reading_command(update: Update, context):
@@ -469,7 +482,18 @@ async def handle_text_message(update: Update, context):
 
 
 async def error_handler(update: Update, context):
+    """Handle errors and log them"""
     logger.error(f"Error: {context.error}")
+
+    # Try to notify user if possible
+    if update and update.effective_chat:
+        try:
+            await context.bot.send_message(
+                chat_id=update.effective_chat.id,
+                text="Something went wrong. Please try /start to continue."
+            )
+        except:
+            pass
 
 
 def main():
