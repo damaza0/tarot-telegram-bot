@@ -79,6 +79,9 @@ class DatabaseManager:
                 username = COALESCE(?, username), first_name = COALESCE(?, first_name)
                 WHERE user_id = ?''', (username, first_name, user_id))
             conn.commit()
+            # Fetch fresh data after update
+            c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+            user = c.fetchone()
             conn.close()
             return dict(user)
 

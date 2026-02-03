@@ -318,9 +318,14 @@ async def admin_command(update: Update, context):
 
     # Add gems
     new_balance = db.add_tokens(target_id, amount)
+
+    # Verify by reading back from database
+    verified_user = db.get_user(target_id)
+    verified_balance = verified_user['tokens'] if verified_user else 0
+
     await update.message.reply_text(
         f"✅ Gave *{amount}*💎 to user `{target_id}`\n"
-        f"New balance: *{new_balance}*💎",
+        f"New balance: *{verified_balance}*💎",
         parse_mode='Markdown'
     )
 
