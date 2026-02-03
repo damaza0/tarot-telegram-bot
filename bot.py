@@ -431,6 +431,7 @@ async def handle_callback(update: Update, context):
         await handle_reading_callback(update, context)
     elif data == "menu_tokens":
         await query.answer()
+        await delete_all_bot_messages(update, context)
         await show_token_shop(update, context)
     elif data == "menu_free_tokens":
         await query.answer()

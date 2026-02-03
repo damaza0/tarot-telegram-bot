@@ -139,8 +139,7 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         ])
         cancel_msg = await context.bot.send_message(
             chat_id=update.effective_chat.id,
-            text="_Tap above to pay, or cancel below_",
-            parse_mode='Markdown',
+            text="⠀",  # Invisible character (Braille blank)
             reply_markup=cancel_keyboard
         )
         track_msg(context, cancel_msg.message_id)
