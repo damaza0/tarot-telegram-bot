@@ -132,6 +132,19 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
             prices=prices
         )
         track_msg(context, invoice_msg.message_id)
+
+        # Send cancel button below invoice
+        cancel_keyboard = InlineKeyboardMarkup([
+            [InlineKeyboardButton("❌ Cancel", callback_data="menu_tokens")]
+        ])
+        cancel_msg = await context.bot.send_message(
+            chat_id=update.effective_chat.id,
+            text="✨ Tap *Pay* above to get your gems!\n\nChanged your mind? Tap cancel to go back.",
+            parse_mode='Markdown',
+            reply_markup=cancel_keyboard
+        )
+        track_msg(context, cancel_msg.message_id)
+
     except Exception as e:
         print(f"Invoice error: {e}")
         keyboard = InlineKeyboardMarkup([
@@ -144,19 +157,6 @@ async def handle_buy_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         )
         return
 
-    # Send cancel button below invoice
-    try:
-        cancel_keyboard = InlineKeyboardMarkup([
-            [InlineKeyboardButton("❌ Cancel", callback_data="menu_tokens")]
-        ])
-        cancel_msg = await context.bot.send_message(
-            chat_id=update.effective_chat.id,
-            text="·",
-            reply_markup=cancel_keyboard
-        )
-        track_msg(context, cancel_msg.message_id)
-    except:
-        pass  # Cancel button is optional, don't fail if it doesn't work
 
 
 async def precheckout_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
