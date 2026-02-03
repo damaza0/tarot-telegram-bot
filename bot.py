@@ -165,17 +165,18 @@ async def delete_extra_bot_messages(update: Update, context):
         context.user_data['bot_messages'] = remaining
 
 
-def track_message(context, msg_id):
+def track_message(context, msg_id, force=False):
     """Track a bot message for later deletion"""
     # Don't track if we're in the middle of resetting (user hit /start)
-    if context.user_data.get('resetting'):
+    # Unless force=True (used for new menu after reset)
+    if context.user_data.get('resetting') and not force:
         return
     if 'bot_messages' not in context.user_data:
         context.user_data['bot_messages'] = []
     context.user_data['bot_messages'].append(msg_id)
 
 
-async def show_main_menu(update: Update, context, user_data: dict = None):
+async def show_main_menu(update: Update, context, user_data: dict = None, force_track: bool = False):
     """Main menu"""
     if not user_data:
         user_id = update.effective_user.id
@@ -222,23 +223,22 @@ Hey {update.effective_user.first_name}!
 
     if update.callback_query:
         await update.callback_query.edit_message_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        track_message(context, update.callback_query.message.message_id)
+        track_message(context, update.callback_query.message.message_id, force=force_track)
     else:
         msg = await update.message.reply_text(menu_text, parse_mode='Markdown', reply_markup=keyboard)
-        track_message(context, msg.message_id)
+        track_message(context, msg.message_id, force=force_track)
 
 
 async def start_command(update: Update, context):
     """Handle /start"""
-    # Signal that we're resetting - stops any ongoing reading message tracking
+    # Signal that we're resetting - stops any ongoing reading from sending more messages
     context.user_data['resetting'] = True
 
     # Clean up ALL old bot messages
     await delete_all_bot_messages(update, context)
 
-    # Clear the list completely and reset flag
+    # Clear the list completely (keep resetting=True until menu is shown)
     context.user_data['bot_messages'] = []
-    context.user_data['resetting'] = False
 
     user = update.effective_user
     args = context.args
@@ -279,9 +279,12 @@ Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READIN
         ])
 
         msg = await update.message.reply_text(welcome_text, parse_mode='Markdown', reply_markup=keyboard)
-        track_message(context, msg.message_id)
+        track_message(context, msg.message_id, force=True)
     else:
-        await show_main_menu(update, context, user_data)
+        await show_main_menu(update, context, user_data, force_track=True)
+
+    # Now safe to allow message tracking again
+    context.user_data['resetting'] = False
 
 
 async def reading_command(update: Update, context):

@@ -336,6 +336,10 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         intro_msg = await update.effective_message.reply_text(intro, parse_mode='Markdown')
         track_msg(context, intro_msg.message_id)
 
+    # Check if user cancelled (hit /start)
+    if context.user_data.get('resetting'):
+        return
+
     cards_data = []
 
     # First 5 cards
@@ -348,8 +352,16 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         if i < 4:
             part1 += "\n\n---\n\n"
 
+    # Check if user cancelled
+    if context.user_data.get('resetting'):
+        return
+
     part1_msg = await update.effective_message.reply_text(part1, parse_mode='Markdown')
     track_msg(context, part1_msg.message_id)
+
+    # Check if user cancelled
+    if context.user_data.get('resetting'):
+        return
 
     # Last 5 cards
     part2 = ""
@@ -388,6 +400,10 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         [InlineKeyboardButton("🔮 Another Reading", callback_data="menu_reading")],
         [InlineKeyboardButton("🏠 Menu", callback_data="menu_main")]
     ])
+
+    # Final check before sending last message
+    if context.user_data.get('resetting'):
+        return
 
     part2_msg = await update.effective_message.reply_text(part2, parse_mode='Markdown', reply_markup=keyboard)
     track_msg(context, part2_msg.message_id)
