@@ -200,9 +200,9 @@ def format_card(card_data: dict, position: str = None, description: str = None, 
     text = ""
     if position:
         if description:
-            text += f"*{position.upper()}* — _{description}_\n"
+            text += f"*{position.upper()}* — _{description}_\n\n"
         else:
-            text += f"*{position.upper()}*\n"
+            text += f"*{position.upper()}*\n\n"
     text += f"{card['emoji']} *{card['name']}{rev}*\n\n"
     text += f"*{keywords_text}*"
 
@@ -311,16 +311,16 @@ async def celtic_cross_reading(update: Update, context: ContextTypes.DEFAULT_TYP
 
     # Position: (name, description, tense)
     positions = [
-        ("Present", "the current energy that bridges the past and future", "present"),
-        ("Challenge", "the current energy that bridges the past and future", "present"),
-        ("Foundation", "the energy that has settled or the foundation that was built", "past"),
-        ("Past", "the energy that has settled or the foundation that was built", "past"),
-        ("Crown", "the energy that awaits on the current path", "future"),
-        ("Future", "the energy that awaits on the current path", "future"),
-        ("Self", "the current energy that bridges the past and future", "present"),
-        ("Environment", "the current energy that bridges the past and future", "present"),
-        ("Hopes & Fears", "the current energy that bridges the past and future", "present"),
-        ("Outcome", "the energy that awaits on the current path", "future")
+        ("The Present", "core of situation or current state", "present"),
+        ("The Challenge", "energy that demands attention", "present"),
+        ("The Root", "foundation that was built or the origin", "past"),
+        ("The Recent Past", "energy that is leaving or settling", "past"),
+        ("The Crown", "highest potential or best outcome", "future"),
+        ("The Near Future", "what energy is around the corner", "future"),
+        ("The Self", "self image, attitude or true inner thoughts and feelings", "present"),
+        ("The Environment", "outside world influence or perception", "present"),
+        ("Hopes and Fears", "hopes and/or fears", "present"),
+        ("The Outcome", "long term result, where this is leading", "future")
     ]
 
     # Build the full reading
@@ -380,11 +380,11 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
     # Position: (name, description, tense)
     # Using neutral terms so reading can be about any two people
     positions = [
-        ("First Person", "the current energy that bridges the past and future", "present"),
-        ("Second Person", "the current energy that bridges the past and future", "present"),
-        ("The Bond", "the current energy that bridges the past and future", "present"),
-        ("The Challenge", "the current energy that bridges the past and future", "present"),
-        ("The Advice", "the energy that awaits on the current path", "future")
+        ("First Person", "energy representing one side of the connection", "present"),
+        ("Second Person", "energy representing the other side", "present"),
+        ("The Bond", "the shared foundation or dynamic of the relationship", "present"),
+        ("The Challenge", "the energy causing tension or obstacles", "present"),
+        ("The Advice", "energy to be aware of, a remedy to the challenge", "future")
     ]
 
     intro = "💕 *Relationship Reading*\n\n"
@@ -441,12 +441,12 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
     # Position: (name, description, tense)
     positions = [
         ("Past", "the energy that has settled or the foundation that was built", "past"),
-        ("Present", "the current energy that bridges the past and future", "present"),
-        ("Hidden Influences", "the current energy that bridges the past and future", "present"),
-        ("Obstacles", "the current energy that bridges the past and future", "present"),
-        ("External Forces", "the current energy that bridges the past and future", "present"),
-        ("Advice", "the energy that awaits on the current path", "future"),
-        ("Outcome", "the energy that awaits on the current path", "future")
+        ("Present", "the current energy or state", "present"),
+        ("Hidden Influences", "forces at work beneath the surface", "present"),
+        ("Obstacles", "energy that hinders progress", "present"),
+        ("External Forces", "people or circumstances affecting things", "present"),
+        ("Advice", "energy to be aware of, a remedy to the obstacle", "future"),
+        ("Outcome", "where things are likely heading", "future")
     ]
 
     intro = "🧲 *Horseshoe Reading*\n\n"

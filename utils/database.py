@@ -20,6 +20,32 @@ class DatabaseManager:
     def __init__(self):
         self.db_path = DB_PATH
 
+    def _minimal_user_dict(self, user_id: int, username: str = None, first_name: str = None, tokens: int = None) -> Dict[str, Any]:
+        """Return a minimal valid user dict as fallback"""
+        if tokens is None:
+            tokens = config.WELCOME_GEMS
+        return {
+            'user_id': user_id,
+            'username': username,
+            'first_name': first_name,
+            'tokens': tokens,
+            'total_tokens_earned': tokens,
+            'total_tokens_spent': 0,
+            'referral_code': f'u{user_id}',
+            'referred_by': None,
+            'referral_count': 0,
+            'referral_tokens_earned': 0,
+            'last_free_reading': None,
+            'last_free_daily_reading': None,
+            'share_streak': 0,
+            'last_share_date': None,
+            'total_readings': 0,
+            'favorite_spread': None,
+            'is_premium': 0,
+            'is_new': True,
+            'welcome_tokens': tokens
+        }
+
     def _get_conn(self):
         conn = sqlite3.connect(self.db_path)
         conn.row_factory = sqlite3.Row
@@ -70,85 +96,99 @@ class DatabaseManager:
 
     def get_or_create_user(self, user_id: int, username: str = None,
                            first_name: str = None, referral_code: str = None) -> Dict[str, Any]:
-        conn = self._get_conn()
-        c = conn.cursor()
+        try:
+            conn = self._get_conn()
+            c = conn.cursor()
 
-        c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-        user = c.fetchone()
-
-        if user:
-            c.execute('''UPDATE users SET last_active = CURRENT_TIMESTAMP,
-                username = COALESCE(?, username), first_name = COALESCE(?, first_name)
-                WHERE user_id = ?''', (username, first_name, user_id))
-            conn.commit()
-            # Fetch fresh data after update
             c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
             user = c.fetchone()
-            conn.close()
-            return dict(user)
 
-        # New user
-        import secrets
-        welcome = config.WELCOME_GEMS
-
-        referred_by = None
-        if referral_code:
-            c.execute('SELECT user_id FROM users WHERE referral_code = ?', (referral_code,))
-            ref = c.fetchone()
-            if ref and ref['user_id'] != user_id:
-                referred_by = ref['user_id']
-
-        # Generate unique referral code with retry logic
-        max_attempts = 5
-        insert_success = False
-        for attempt in range(max_attempts):
-            user_ref_code = secrets.token_urlsafe(8)
-            try:
-                c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
-                    total_tokens_earned, referral_code, referred_by)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                    (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
-                insert_success = True
-                break  # Success, exit loop
-            except sqlite3.IntegrityError as e:
-                # Check if user was created by another request (race condition)
+            if user:
+                # Existing user - update and return
+                c.execute('''UPDATE users SET last_active = CURRENT_TIMESTAMP,
+                    username = COALESCE(?, username), first_name = COALESCE(?, first_name)
+                    WHERE user_id = ?''', (username, first_name, user_id))
+                conn.commit()
                 c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-                existing = c.fetchone()
-                if existing:
-                    # User exists now - return them (race condition resolved)
-                    conn.close()
-                    return dict(existing)
+                user = c.fetchone()
+                conn.close()
+                if user:
+                    return dict(user)
+                else:
+                    print(f"[DB ERROR] User {user_id} disappeared after update!")
+                    return self._minimal_user_dict(user_id, username, first_name)
 
-                # Not a race condition - must be referral code collision
-                if attempt == max_attempts - 1:
-                    # Last attempt failed, use user_id as fallback for referral code
-                    user_ref_code = f"u{user_id}"
-                    try:
-                        c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
-                            total_tokens_earned, referral_code, referred_by)
-                            VALUES (?, ?, ?, ?, ?, ?, ?)''',
-                            (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
-                        insert_success = True
-                    except sqlite3.IntegrityError:
-                        # Final fallback - check if user exists now
-                        c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-                        existing = c.fetchone()
-                        if existing:
-                            conn.close()
-                            return dict(existing)
-                        raise  # Re-raise if still can't insert
+            # New user
+            import secrets
+            welcome = config.WELCOME_GEMS
 
-        if referred_by:
-            self._process_referral(c, referred_by, user_id)
+            referred_by = None
+            if referral_code:
+                c.execute('SELECT user_id FROM users WHERE referral_code = ?', (referral_code,))
+                ref = c.fetchone()
+                if ref and ref['user_id'] != user_id:
+                    referred_by = ref['user_id']
 
-        conn.commit()
-        c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
-        new_user = dict(c.fetchone())
-        conn.close()
+            # Generate unique referral code with retry logic
+            max_attempts = 5
+            user_ref_code = None
+            for attempt in range(max_attempts):
+                user_ref_code = secrets.token_urlsafe(8)
+                try:
+                    c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
+                        total_tokens_earned, referral_code, referred_by)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                        (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                    break  # Success
+                except sqlite3.IntegrityError:
+                    # Check if user was created by another request (race condition)
+                    c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+                    existing = c.fetchone()
+                    if existing:
+                        conn.close()
+                        return dict(existing)
 
-        new_user['is_new'] = True
-        new_user['welcome_tokens'] = welcome
-        return new_user
+                    # Must be referral code collision - try again
+                    if attempt == max_attempts - 1:
+                        # Last attempt - use user_id as fallback
+                        user_ref_code = f"u{user_id}"
+                        try:
+                            c.execute('''INSERT INTO users (user_id, username, first_name, tokens,
+                                total_tokens_earned, referral_code, referred_by)
+                                VALUES (?, ?, ?, ?, ?, ?, ?)''',
+                                (user_id, username, first_name, welcome, welcome, user_ref_code, referred_by))
+                        except sqlite3.IntegrityError:
+                            c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+                            existing = c.fetchone()
+                            if existing:
+                                conn.close()
+                                return dict(existing)
+                            raise
+
+            # Process referral if applicable
+            if referred_by:
+                self._process_referral(c, referred_by, user_id)
+
+            # Commit and fetch the new user
+            conn.commit()
+            c.execute('SELECT * FROM users WHERE user_id = ?', (user_id,))
+            result = c.fetchone()
+            conn.close()
+
+            if not result:
+                print(f"[DB ERROR] Failed to retrieve user {user_id} after insert!")
+                return self._minimal_user_dict(user_id, username, first_name, welcome)
+
+            new_user = dict(result)
+            new_user['is_new'] = True
+            new_user['welcome_tokens'] = welcome
+            return new_user
+
+        except Exception as e:
+            print(f"[DB ERROR] Exception in get_or_create_user for {user_id}: {e}")
+            import traceback
+            traceback.print_exc()
+            return self._minimal_user_dict(user_id, username, first_name)
 
     def _process_referral(self, cursor, referrer_id: int, referred_id: int):
         reward = config.REFERRAL_REWARD_REFERRER

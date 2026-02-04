@@ -178,12 +178,17 @@ def track_message(context, msg_id, force=False):
 
 async def show_main_menu(update: Update, context, user_data: dict = None, force_track: bool = False):
     """Main menu"""
+    user_id = update.effective_user.id
+
     if not user_data:
-        user_id = update.effective_user.id
         user_data = db.get_user(user_id)
 
-    user_id = update.effective_user.id
-    gems = user_data['tokens'] if user_data else 0
+    # Defensive: make sure we have valid user data
+    if not user_data:
+        user_data = db.get_or_create_user(user_id, update.effective_user.username, update.effective_user.first_name)
+
+    # Defensive: make sure tokens exists and is a number
+    gems = user_data.get('tokens', 0) or 0
 
     # Free gem status
     can_free, seconds_until = db.can_get_free_reading(user_id)
