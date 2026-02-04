@@ -115,6 +115,17 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 
 
+def escape_markdown(text: str) -> str:
+    """Escape Markdown special characters in text"""
+    if not text:
+        return ""
+    # Escape these characters: _ * [ ] ( ) ~ ` > # + - = | { } . !
+    escape_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for char in escape_chars:
+        text = text.replace(char, f'\\{char}')
+    return text
+
+
 async def delete_all_bot_messages(update: Update, context):
     """Delete ALL tracked bot messages to keep chat completely clean"""
     chat_id = update.effective_chat.id
@@ -212,7 +223,7 @@ async def show_main_menu(update: Update, context, user_data: dict = None, force_
 
     menu_text = f"""🔮 *Pocket Tarot* 🔮
 
-Hey {update.effective_user.first_name}!
+Hey {escape_markdown(update.effective_user.first_name)}!
 
 💎 *{gems}* gems
 {gem_status}
@@ -267,7 +278,7 @@ async def start_command(update: Update, context):
 
             welcome_text = f"""🔮 *Welcome to Pocket Tarot!* 🔮
 
-Hey {user.first_name}! You got *{welcome_gems} free gems* 💎
+Hey {escape_markdown(user.first_name)}! You got *{welcome_gems} free gems* 💎
 
 ☀️ *FREE every day:*
 

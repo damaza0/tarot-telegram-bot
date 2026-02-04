@@ -9,6 +9,16 @@ from utils.database import db
 import config
 
 
+def escape_markdown(text: str) -> str:
+    """Escape Markdown special characters in text"""
+    if not text:
+        return ""
+    escape_chars = ['_', '*', '[', ']', '(', ')', '~', '`', '>', '#', '+', '-', '=', '|', '{', '}', '.', '!']
+    for char in escape_chars:
+        text = text.replace(char, f'\\{char}')
+    return text
+
+
 def track_msg(context, msg_id):
     """Track a message for later deletion (respects resetting flag)"""
     if context.user_data.get('resetting'):
@@ -82,7 +92,7 @@ async def process_referral_start(user_id: int, username: str, first_name: str,
 
             text = f"""🎉 *New Referral!*
 
-{first_name or 'Someone'} joined using your link!
+{escape_markdown(first_name) or 'Someone'} joined using your link!
 
 +{config.REFERRAL_REWARD_REFERRER}💎 earned
 Total friends: {referrer_stats['total_referrals']}
