@@ -443,7 +443,7 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         ("Past", "the energy that has settled or the foundation that was built", "past"),
         ("Present", "the current energy or state", "present"),
         ("Hidden Influences", "forces at work beneath the surface", "present"),
-        ("Obstacles", "energy that hinders progress", "present"),
+        ("Obstacle", "energy that hinders progress", "present"),
         ("External Forces", "people or circumstances affecting things", "present"),
         ("Advice", "energy to be aware of, a remedy to the obstacle", "future"),
         ("Outcome", "where things are likely heading", "future")
