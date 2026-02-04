@@ -416,6 +416,44 @@ async def admin_command(update: Update, context):
     )
 
 
+async def resetuser_command(update: Update, context):
+    """Admin command to reset/delete a user: /resetuser USER_ID"""
+    user_id = update.effective_user.id
+
+    # Check if user is admin
+    if user_id != config.ADMIN_ID:
+        return  # Silently ignore non-admins
+
+    args = context.args
+    if not args:
+        await update.message.reply_text(
+            "*Reset User Command:*\n\n"
+            "`/resetuser USER_ID` — Delete a user so they can start fresh\n\n"
+            "Example: `/resetuser 123456789`",
+            parse_mode='Markdown'
+        )
+        return
+
+    try:
+        target_id = int(args[0])
+    except ValueError:
+        await update.message.reply_text("❌ Invalid user ID")
+        return
+
+    # Delete the user
+    deleted = db.delete_user(target_id)
+
+    if deleted:
+        await update.message.reply_text(
+            f"✅ User `{target_id}` has been deleted.\n"
+            f"They will get a fresh account when they use /start",
+            parse_mode='Markdown'
+        )
+    else:
+        await update.message.reply_text(
+            f"⚠️ User `{target_id}` was not found in database.",
+            parse_mode='Markdown'
+        )
 
 
 async def handle_callback(update: Update, context):
@@ -518,6 +556,7 @@ def main():
     application.add_handler(CommandHandler("stats", stats_command))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("admin", admin_command))
+    application.add_handler(CommandHandler("resetuser", resetuser_command))
     application.add_handler(CallbackQueryHandler(handle_callback))
     application.add_handler(PreCheckoutQueryHandler(precheckout_callback))
     application.add_handler(MessageHandler(filters.SUCCESSFUL_PAYMENT, successful_payment_callback))

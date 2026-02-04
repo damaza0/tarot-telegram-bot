@@ -218,6 +218,24 @@ class DatabaseManager:
                 (user_id, milestone_type, milestone_value, tokens_awarded)
                 VALUES (?, 'referral', ?, ?)''', (referrer_id, count, bonus))
 
+    def delete_user(self, user_id: int) -> bool:
+        """Delete a user from the database"""
+        try:
+            conn = self._get_conn()
+            c = conn.cursor()
+            c.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
+            exists = c.fetchone()
+            if not exists:
+                conn.close()
+                return False
+            c.execute('DELETE FROM users WHERE user_id = ?', (user_id,))
+            conn.commit()
+            conn.close()
+            return True
+        except Exception as e:
+            print(f"[DB ERROR] Failed to delete user {user_id}: {e}")
+            return False
+
     def get_user(self, user_id: int) -> Optional[Dict[str, Any]]:
         conn = self._get_conn()
         c = conn.cursor()
