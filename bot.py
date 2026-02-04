@@ -306,10 +306,6 @@ Horseshoe {config.READING_COSTS['horseshoe']}💎 · Celtic Cross {config.READIN
             pass
 
 
-async def reading_command(update: Update, context):
-    await delete_all_bot_messages(update, context)
-    await show_reading_menu(update, context)
-
 async def tokens_command(update: Update, context):
     await delete_all_bot_messages(update, context)
     await show_token_shop(update, context)
@@ -346,7 +342,6 @@ async def help_command(update: Update, context):
     help_text = f"""🔮 *Pocket Tarot* 🔮
 
 /start — Main menu
-/reading — Get a reading
 /gems — Buy gems
 /referral — Invite friends
 /stats — Your stats
@@ -484,7 +479,7 @@ async def handle_text_message(update: Update, context):
 
     # Otherwise show help hint
     await update.message.reply_text(
-        "Use /start to open the menu or /reading to get a tarot reading."
+        "Use /start to open the menu."
     )
 
 
@@ -511,7 +506,6 @@ def main():
     application = Application.builder().token(config.BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start_command))
-    application.add_handler(CommandHandler("reading", reading_command))
     application.add_handler(CommandHandler("gems", tokens_command))
     application.add_handler(CommandHandler("tokens", tokens_command))
     application.add_handler(CommandHandler("referral", referral_command))
