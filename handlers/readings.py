@@ -384,7 +384,7 @@ async def relationship_reading(update: Update, context: ContextTypes.DEFAULT_TYP
         ("Second Person", "energy representing the other side", "present"),
         ("The Bond", "the shared foundation or dynamic of the relationship", "present"),
         ("The Challenge", "the energy causing tension or obstacles", "present"),
-        ("The Advice", "energy to be aware of, a remedy to the challenge", "future")
+        ("Advice", "recommended mindset, approach, or what to beware of", "future")
     ]
 
     intro = "💕 *Relationship Reading*\n\n"
@@ -445,7 +445,7 @@ async def horseshoe_reading(update: Update, context: ContextTypes.DEFAULT_TYPE, 
         ("Hidden Influences", "forces at work beneath the surface", "present"),
         ("Obstacle", "energy that hinders progress", "present"),
         ("External Forces", "people or circumstances affecting things", "present"),
-        ("Advice", "energy to be aware of, a remedy to the obstacle", "future"),
+        ("Advice", "recommended mindset, approach, or what to beware of", "future"),
         ("Outcome", "where things are likely heading", "future")
     ]
 
